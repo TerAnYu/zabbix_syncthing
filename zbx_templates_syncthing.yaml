@@ -1,0 +1,768 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9c230ef880b3
+      name: Templates/Applications
+  templates:
+    - uuid: b3d9f8e2a1c44f8b9d0e1f2a3b4c5d6e
+      template: 'Template App Syncthing'
+      name: 'Template App Syncthing'
+      description: |
+        Template revision 20261102-1
+        
+        Zabbix 7.0+
+        Qwen 3.7-Max & TerAnYu
+        https://github.com/TerAnYu/zabbix_syncthing
+      groups:
+        - name: Templates/Applications
+      items:
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0010
+          name: 'Syncthing: Total received bytes'
+          type: DEPENDENT
+          key: syncthing.connections.in_bytes
+          history: 7d
+          trends: 90d
+          units: B
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.total.inBytesTotal
+          master_item:
+            key: syncthing.connections.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0011
+          name: 'Syncthing: Total sent bytes'
+          type: DEPENDENT
+          key: syncthing.connections.out_bytes
+          history: 7d
+          trends: 90d
+          units: B
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.total.outBytesTotal
+          master_item:
+            key: syncthing.connections.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0002
+          name: 'Syncthing: Connections (raw)'
+          type: HTTP_AGENT
+          key: syncthing.connections.raw
+          history: '0'
+          value_type: TEXT
+          authtype: BASIC
+          username: '{$SYNCTHING.USERNAME}'
+          password: '{$SYNCTHING.PASSWORD}'
+          timeout: 30s
+          url: '{$SYNCTHING.URL}/rest/system/connections'
+          headers:
+            - name: X-API-Key
+              value: '{$SYNCTHING.APIKEY}'
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0008
+          name: 'Syncthing: Device ID (local)'
+          type: DEPENDENT
+          key: syncthing.device.id
+          history: 7d
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.myID
+          master_item:
+            key: syncthing.system.status.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0016
+          name: 'Syncthing: Devices Config (raw)'
+          type: HTTP_AGENT
+          key: syncthing.devices.config.raw
+          delay: 5m
+          history: '0'
+          value_type: TEXT
+          authtype: BASIC
+          username: '{$SYNCTHING.USERNAME}'
+          password: '{$SYNCTHING.PASSWORD}'
+          timeout: 30s
+          url: '{$SYNCTHING.URL}/rest/config/devices'
+          headers:
+            - name: X-API-Key
+              value: '{$SYNCTHING.APIKEY}'
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0012
+          name: 'Syncthing: Devices connected'
+          type: DEPENDENT
+          key: syncthing.devices.connected
+          history: 7d
+          trends: 90d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var d = JSON.parse(value); var c = 0; for (var id in d.connections) { if (d.connections[id].connected) c++; } return c;'
+          master_item:
+            key: syncthing.connections.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0013
+          name: 'Syncthing: Devices disconnected'
+          type: DEPENDENT
+          key: syncthing.devices.disconnected
+          history: 7d
+          trends: 90d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var d = JSON.parse(value); var c = 0; for (var id in d.connections) { if (!d.connections[id].connected && !d.connections[id].paused) c++; } return c;'
+          master_item:
+            key: syncthing.connections.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0014
+          name: 'Syncthing: Devices paused'
+          type: DEPENDENT
+          key: syncthing.devices.paused
+          history: 7d
+          trends: 90d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var d = JSON.parse(value); var c = 0; for (var id in d.connections) { if (d.connections[id].paused) c++; } return c;'
+          master_item:
+            key: syncthing.connections.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0017
+          name: 'Syncthing: Devices total'
+          type: DEPENDENT
+          key: syncthing.devices.total
+          history: 7d
+          trends: 90d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var a = JSON.parse(value); return Array.isArray(a) ? a.length : 0;'
+          master_item:
+            key: syncthing.devices.config.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0009
+          name: 'Syncthing: Discovery enabled'
+          type: DEPENDENT
+          key: syncthing.discovery.enabled
+          history: 7d
+          trends: 90d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var j = JSON.parse(value); return j.discoveryEnabled ? 1 : 0;'
+          master_item:
+            key: syncthing.system.status.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0003
+          name: 'Syncthing: Folders Config (raw)'
+          type: HTTP_AGENT
+          key: syncthing.folders.config.raw
+          delay: 5m
+          history: '0'
+          value_type: TEXT
+          authtype: BASIC
+          username: '{$SYNCTHING.USERNAME}'
+          password: '{$SYNCTHING.PASSWORD}'
+          timeout: 30s
+          url: '{$SYNCTHING.URL}/rest/config/folders'
+          headers:
+            - name: X-API-Key
+              value: '{$SYNCTHING.APIKEY}'
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0015
+          name: 'Syncthing: Folders total'
+          type: DEPENDENT
+          key: syncthing.folders.total
+          history: 7d
+          trends: 90d
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var a = JSON.parse(value); return Array.isArray(a) ? a.length : 0;'
+          master_item:
+            key: syncthing.folders.config.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0007
+          name: 'Syncthing: Goroutines'
+          type: DEPENDENT
+          key: syncthing.goroutines
+          history: 7d
+          trends: 90d
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.goroutines
+          master_item:
+            key: syncthing.system.status.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0005
+          name: 'Syncthing: Memory allocated'
+          type: DEPENDENT
+          key: syncthing.memory.alloc
+          history: 7d
+          trends: 90d
+          units: B
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.alloc
+          master_item:
+            key: syncthing.system.status.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0006
+          name: 'Syncthing: Memory system'
+          type: DEPENDENT
+          key: syncthing.memory.sys
+          history: 7d
+          trends: 90d
+          units: B
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.sys
+          master_item:
+            key: syncthing.system.status.raw
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0001
+          name: 'Syncthing: System Status (raw)'
+          type: HTTP_AGENT
+          key: syncthing.system.status.raw
+          history: '0'
+          value_type: TEXT
+          authtype: BASIC
+          username: '{$SYNCTHING.USERNAME}'
+          password: '{$SYNCTHING.PASSWORD}'
+          timeout: 30s
+          url: '{$SYNCTHING.URL}/rest/system/status'
+          headers:
+            - name: X-API-Key
+              value: '{$SYNCTHING.APIKEY}'
+          triggers:
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0301
+              expression: 'nodata(/Template App Syncthing/syncthing.system.status.raw,5m)=1'
+              name: 'Syncthing: Service is not responding'
+              priority: HIGH
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0004
+          name: 'Syncthing: Uptime'
+          type: DEPENDENT
+          key: syncthing.uptime
+          history: 7d
+          trends: 90d
+          units: uptime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.uptime
+          master_item:
+            key: syncthing.system.status.raw
+          triggers:
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0302
+              expression: 'last(/Template App Syncthing/syncthing.uptime)<10m'
+              name: 'Syncthing: Service has been restarted'
+              priority: WARNING
+      discovery_rules:
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0110
+          name: 'Syncthing: Remote Devices discovery'
+          type: DEPENDENT
+          key: syncthing.devices.discovery
+          item_prototypes:
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0115
+              name: 'Syncthing: Device [{#DEVICENAME}] address'
+              type: DEPENDENT
+              key: 'syncthing.device.address[{#DEVICEID}]'
+              history: 7d
+              value_type: TEXT
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); return d.connections[''{#DEVICEID}''] ? d.connections[''{#DEVICEID}''].address || '''' : '''';'
+              master_item:
+                key: syncthing.connections.raw
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0116
+              name: 'Syncthing: Device [{#DEVICENAME}] client version'
+              type: DEPENDENT
+              key: 'syncthing.device.client_version[{#DEVICEID}]'
+              history: 7d
+              value_type: TEXT
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); return d.connections[''{#DEVICEID}''] ? d.connections[''{#DEVICEID}''].clientVersion || '''' : '''';'
+              master_item:
+                key: syncthing.connections.raw
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0111
+              name: 'Syncthing: Device [{#DEVICENAME}] connected'
+              type: DEPENDENT
+              key: 'syncthing.device.connected[{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); return d.connections[''{#DEVICEID}''] && d.connections[''{#DEVICEID}''].connected ? 1 : 0;'
+              master_item:
+                key: syncthing.connections.raw
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0113
+              name: 'Syncthing: Device [{#DEVICENAME}] received bytes'
+              type: DEPENDENT
+              key: 'syncthing.device.in_bytes[{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              units: B
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); return d.connections[''{#DEVICEID}''] ? d.connections[''{#DEVICEID}''].inBytesTotal || 0 : 0;'
+              master_item:
+                key: syncthing.connections.raw
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0119
+              name: 'Syncthing: Device [{#DEVICENAME}] is local'
+              type: DEPENDENT
+              key: 'syncthing.device.is_local[{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); return d.connections[''{#DEVICEID}''] && d.connections[''{#DEVICEID}''].isLocal ? 1 : 0;'
+              master_item:
+                key: syncthing.connections.raw
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0118
+              name: 'Syncthing: Device [{#DEVICENAME}] last seen'
+              type: DEPENDENT
+              key: 'syncthing.device.last_seen[{#DEVICEID}]'
+              history: 7d
+              value_type: TEXT
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); var at = d.connections[''{#DEVICEID}''] ? d.connections[''{#DEVICEID}''].at : ''''; if (!at || at === ''0001-01-01T00:00:00Z'') return ''Never''; return at;'
+              master_item:
+                key: syncthing.connections.raw
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0114
+              name: 'Syncthing: Device [{#DEVICENAME}] sent bytes'
+              type: DEPENDENT
+              key: 'syncthing.device.out_bytes[{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              units: B
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); return d.connections[''{#DEVICEID}''] ? d.connections[''{#DEVICEID}''].outBytesTotal || 0 : 0;'
+              master_item:
+                key: syncthing.connections.raw
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0112
+              name: 'Syncthing: Device [{#DEVICENAME}] paused'
+              type: DEPENDENT
+              key: 'syncthing.device.paused[{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); return d.connections[''{#DEVICEID}''] && d.connections[''{#DEVICEID}''].paused ? 1 : 0;'
+              master_item:
+                key: syncthing.connections.raw
+              trigger_prototypes:
+                - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0212
+                  expression: 'last(/Template App Syncthing/syncthing.device.paused[{#DEVICEID}])=1'
+                  name: 'Syncthing: Device [{#DEVICENAME}] is paused'
+                  priority: INFO
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0117
+              name: 'Syncthing: Device [{#DEVICENAME}] connection type'
+              type: DEPENDENT
+              key: 'syncthing.device.type[{#DEVICEID}]'
+              history: 7d
+              value_type: TEXT
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); return d.connections[''{#DEVICEID}''] ? d.connections[''{#DEVICEID}''].type || '''' : '''';'
+              master_item:
+                key: syncthing.connections.raw
+          trigger_prototypes:
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0211
+              expression: 'last(/Template App Syncthing/syncthing.device.connected[{#DEVICEID}])=0 and last(/Template App Syncthing/syncthing.device.paused[{#DEVICEID}])=0'
+              name: 'Syncthing: Device [{#DEVICENAME}] is disconnected'
+              priority: AVERAGE
+              manual_close: 'YES'
+          master_item:
+            key: syncthing.devices.config.raw
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var devices = JSON.parse(value); var result = []; if (Array.isArray(devices)) { for (var i = 0; i < devices.length; i++) { var d = devices[i]; result.push({ ''{#DEVICEID}'': d.deviceID, ''{#DEVICENAME}'': d.name || d.deviceID.substring(0, 7), ''{#DEVICECOMPRESSION}'': d.compression || ''none'' }); } } return JSON.stringify(result);'
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0130
+          name: 'Syncthing: Folder-Device completion discovery'
+          type: DEPENDENT
+          key: syncthing.folder.device.discovery
+          description: 'Мониторинг completion для каждой пары папка+устройство (реальный статус синхронизации)'
+          item_prototypes:
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0131
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] completion (raw)'
+              type: HTTP_AGENT
+              key: 'syncthing.folder.device.completion.raw[{#FOLDERID},{#DEVICEID}]'
+              history: '0'
+              value_type: TEXT
+              authtype: BASIC
+              username: '{$SYNCTHING.USERNAME}'
+              password: '{$SYNCTHING.PASSWORD}'
+              timeout: 30s
+              url: '{$SYNCTHING.URL}/rest/db/completion'
+              query_fields:
+                - name: folder
+                  value: '{#FOLDERID}'
+                - name: device
+                  value: '{#DEVICEID}'
+              headers:
+                - name: X-API-Key
+                  value: '{$SYNCTHING.APIKEY}'
+              tags:
+                - tag: component
+                  value: raw
+                - tag: device
+                  value: '{#DEVICENAME}'
+                - tag: folder
+                  value: '{#FOLDERLABEL}'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0132
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] completion %'
+              type: DEPENDENT
+              key: 'syncthing.folder.device.completion_pct[{#FOLDERID},{#DEVICEID}]'
+              history: 7d
+              value_type: FLOAT
+              trends: 90d
+              units: '%'
+              description: 'Процент синхронизации данных для удалённого устройства (как в веб-интерфейсе)'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.completion
+              master_item:
+                key: 'syncthing.folder.device.completion.raw[{#FOLDERID},{#DEVICEID}]'
+              tags:
+                - tag: component
+                  value: sync
+                - tag: device
+                  value: '{#DEVICENAME}'
+                - tag: folder
+                  value: '{#FOLDERLABEL}'
+              trigger_prototypes:
+                - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0220
+                  expression: 'last(/Template App Syncthing/syncthing.folder.device.completion_pct[{#FOLDERID},{#DEVICEID}])<{$SYNCTHING.COMPLETION.MIN}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template App Syncthing/syncthing.folder.device.completion_pct[{#FOLDERID},{#DEVICEID}])>={$SYNCTHING.COMPLETION.MIN}'
+                  name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] out of sync ({ITEM.LASTVALUE1})'
+                  priority: WARNING
+                  description: 'Устройство не синхронизировано полностью с этой папкой. Возможно устройство выключено.'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0137
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] global bytes'
+              type: DEPENDENT
+              key: 'syncthing.folder.device.global_bytes[{#FOLDERID},{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              units: B
+              description: 'Общий объём данных в папке (глобально)'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.globalBytes
+              master_item:
+                key: 'syncthing.folder.device.completion.raw[{#FOLDERID},{#DEVICEID}]'
+              tags:
+                - tag: component
+                  value: sync
+                - tag: device
+                  value: '{#DEVICENAME}'
+                - tag: folder
+                  value: '{#FOLDERLABEL}'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0133
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] need bytes'
+              type: DEPENDENT
+              key: 'syncthing.folder.device.need_bytes[{#FOLDERID},{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              units: B
+              description: 'Объём данных, которые нужно передать удалённому устройству'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.needBytes
+              master_item:
+                key: 'syncthing.folder.device.completion.raw[{#FOLDERID},{#DEVICEID}]'
+              tags:
+                - tag: component
+                  value: sync
+                - tag: device
+                  value: '{#DEVICENAME}'
+                - tag: folder
+                  value: '{#FOLDERLABEL}'
+              trigger_prototypes:
+                - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0221
+                  expression: 'last(/Template App Syncthing/syncthing.folder.device.need_bytes[{#FOLDERID},{#DEVICEID}])>{$SYNCTHING.FOLDER.NEED_BYTES.MAX}'
+                  name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] needs {ITEM.LASTVALUE1}'
+                  priority: AVERAGE
+                  description: 'Слишком много данных для синхронизации с этим устройством'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0135
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] need deletes'
+              type: DEPENDENT
+              key: 'syncthing.folder.device.need_deletes[{#FOLDERID},{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              description: 'Количество удалений для синхронизации'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.needDeletes
+              master_item:
+                key: 'syncthing.folder.device.completion.raw[{#FOLDERID},{#DEVICEID}]'
+              tags:
+                - tag: component
+                  value: sync
+                - tag: device
+                  value: '{#DEVICENAME}'
+                - tag: folder
+                  value: '{#FOLDERLABEL}'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0134
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] need items'
+              type: DEPENDENT
+              key: 'syncthing.folder.device.need_items[{#FOLDERID},{#DEVICEID}]'
+              history: 7d
+              trends: 90d
+              description: 'Количество файлов для синхронизации с удалённым устройством'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.needItems
+              master_item:
+                key: 'syncthing.folder.device.completion.raw[{#FOLDERID},{#DEVICEID}]'
+              tags:
+                - tag: component
+                  value: sync
+                - tag: device
+                  value: '{#DEVICENAME}'
+                - tag: folder
+                  value: '{#FOLDERLABEL}'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0136
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] remote state'
+              type: DEPENDENT
+              key: 'syncthing.folder.device.remote_state[{#FOLDERID},{#DEVICEID}]'
+              history: 7d
+              value_type: TEXT
+              description: 'Состояние удалённого устройства: valid (online) / unknown (offline) / paused'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.remoteState
+              master_item:
+                key: 'syncthing.folder.device.completion.raw[{#FOLDERID},{#DEVICEID}]'
+              tags:
+                - tag: component
+                  value: sync
+                - tag: device
+                  value: '{#DEVICENAME}'
+                - tag: folder
+                  value: '{#FOLDERLABEL}'
+          trigger_prototypes:
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0222
+              expression: 'last(/Template App Syncthing/syncthing.folder.device.remote_state[{#FOLDERID},{#DEVICEID}])="unknown" and last(/Template App Syncthing/syncthing.folder.device.completion_pct[{#FOLDERID},{#DEVICEID}])<100'
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] offline and out of sync'
+              priority: HIGH
+              description: 'Устройство выключено/недоступно и имеет несинхронизированные данные'
+          graph_prototypes:
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0224
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] need bytes'
+              graph_items:
+                - color: FF6B6B
+                  item:
+                    host: 'Template App Syncthing'
+                    key: 'syncthing.folder.device.need_bytes[{#FOLDERID},{#DEVICEID}]'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0223
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] → Device [{#DEVICENAME}] sync progress'
+              graph_items:
+                - color: 1A7C11
+                  item:
+                    host: 'Template App Syncthing'
+                    key: 'syncthing.folder.device.completion_pct[{#FOLDERID},{#DEVICEID}]'
+          master_item:
+            key: syncthing.folders.config.raw
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var folders = JSON.parse(value); var result = []; if (Array.isArray(folders)) { for (var i = 0; i < folders.length; i++) { var folder = folders[i]; var folderId = folder.id; var folderLabel = folder.label || folder.id; if (Array.isArray(folder.devices)) { for (var d = 0; d < folder.devices.length; d++) { var deviceId = folder.devices[d].deviceID; var deviceName = deviceId.substring(0, 7); result.push({ ''{#FOLDERID}'': folderId, ''{#FOLDERLABEL}'': folderLabel, ''{#DEVICEID}'': deviceId, ''{#DEVICENAME}'': deviceName }); } } } } return JSON.stringify(result);'
+        - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0100
+          name: 'Syncthing: Folders discovery'
+          type: DEPENDENT
+          key: syncthing.folders.discovery
+          item_prototypes:
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0105
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] global bytes'
+              type: DEPENDENT
+              key: 'syncthing.folder.global_bytes[{#FOLDERID}]'
+              history: 7d
+              trends: 90d
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.globalBytes
+              master_item:
+                key: 'syncthing.folder.status.raw[{#FOLDERID}]'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0103
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] need bytes (local)'
+              type: DEPENDENT
+              key: 'syncthing.folder.need_bytes[{#FOLDERID}]'
+              history: 7d
+              trends: 90d
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.needBytes
+              master_item:
+                key: 'syncthing.folder.status.raw[{#FOLDERID}]'
+              trigger_prototypes:
+                - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0203
+                  expression: 'min(/Template App Syncthing/syncthing.folder.need_bytes[{#FOLDERID}],10m)>{$SYNCTHING.FOLDER.NEED_BYTES.MAX}'
+                  name: 'Syncthing: Folder [{#FOLDERLABEL}] needs too much data sync (local)'
+                  priority: AVERAGE
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0104
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] need files (local)'
+              type: DEPENDENT
+              key: 'syncthing.folder.need_files[{#FOLDERID}]'
+              history: 7d
+              trends: 90d
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.needFiles
+              master_item:
+                key: 'syncthing.folder.status.raw[{#FOLDERID}]'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0106
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] pull errors'
+              type: DEPENDENT
+              key: 'syncthing.folder.pull_errors[{#FOLDERID}]'
+              history: 7d
+              trends: 90d
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.pullErrors
+              master_item:
+                key: 'syncthing.folder.status.raw[{#FOLDERID}]'
+              trigger_prototypes:
+                - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0202
+                  expression: 'last(/Template App Syncthing/syncthing.folder.pull_errors[{#FOLDERID}])>0'
+                  name: 'Syncthing: Folder [{#FOLDERLABEL}] has pull errors'
+                  priority: WARNING
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0102
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] state'
+              type: DEPENDENT
+              key: 'syncthing.folder.state[{#FOLDERID}]'
+              history: 7d
+              trends: 90d
+              valuemap:
+                name: 'Syncthing folder state'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); var m = {''idle'':0,''syncing'':1,''scanning'':2,''error'':3,''unknown'':4}; return m[d.state] !== undefined ? m[d.state] : 99;'
+              master_item:
+                key: 'syncthing.folder.status.raw[{#FOLDERID}]'
+              trigger_prototypes:
+                - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0201
+                  expression: 'last(/Template App Syncthing/syncthing.folder.state[{#FOLDERID}])=3'
+                  name: 'Syncthing: Folder [{#FOLDERLABEL}] is in ERROR state'
+                  priority: HIGH
+                - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0204
+                  expression: 'min(/Template App Syncthing/syncthing.folder.state[{#FOLDERID}],1h)<>0 and min(/Template App Syncthing/syncthing.folder.state[{#FOLDERID}],1h)<>2'
+                  name: 'Syncthing: Folder [{#FOLDERLABEL}] is not idle for 1 hour'
+                  priority: WARNING
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0108
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] state changed'
+              type: DEPENDENT
+              key: 'syncthing.folder.state_changed[{#FOLDERID}]'
+              history: 7d
+              value_type: TEXT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.stateChanged
+              master_item:
+                key: 'syncthing.folder.status.raw[{#FOLDERID}]'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0101
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] status (raw)'
+              type: HTTP_AGENT
+              key: 'syncthing.folder.status.raw[{#FOLDERID}]'
+              history: '0'
+              value_type: TEXT
+              authtype: BASIC
+              username: '{$SYNCTHING.USERNAME}'
+              password: '{$SYNCTHING.PASSWORD}'
+              timeout: 30s
+              url: '{$SYNCTHING.URL}/rest/db/status'
+              query_fields:
+                - name: folder
+                  value: '{#FOLDERID}'
+              headers:
+                - name: X-API-Key
+                  value: '{$SYNCTHING.APIKEY}'
+            - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0107
+              name: 'Syncthing: Folder [{#FOLDERLABEL}] sync percentage (local)'
+              type: DEPENDENT
+              key: 'syncthing.folder.sync_pct[{#FOLDERID}]'
+              history: 7d
+              value_type: FLOAT
+              trends: 90d
+              units: '%'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'var d = JSON.parse(value); var g = d.globalBytes || 0; var s = d.inSyncBytes || 0; if (g === 0) return 100; return (s / g * 100).toFixed(2);'
+              master_item:
+                key: 'syncthing.folder.status.raw[{#FOLDERID}]'
+          master_item:
+            key: syncthing.folders.config.raw
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'var folders = JSON.parse(value); var result = []; if (Array.isArray(folders)) { for (var i = 0; i < folders.length; i++) { result.push({ ''{#FOLDERID}'': folders[i].id, ''{#FOLDERLABEL}'': folders[i].label || folders[i].id, ''{#FOLDERPATH}'': folders[i].path || '''' }); } } return JSON.stringify(result);'
+      tags:
+        - tag: class
+          value: application
+        - tag: target
+          value: syncthing
+      macros:
+        - macro: '{$SYNCTHING.APIKEY}'
+          description: 'API Key (альтернатива Basic Auth, приоритет выше)'
+        - macro: '{$SYNCTHING.COMPLETION.MIN}'
+          value: '100'
+          description: 'Минимальный процент completion для пары папка-устройство (по умолчанию 100%)'
+        - macro: '{$SYNCTHING.DEVICES.MIN_CONNECTED}'
+          value: '1'
+          description: 'Минимальное количество подключённых устройств для срабатывания алёрта'
+        - macro: '{$SYNCTHING.FOLDER.NEED_BYTES.MAX}'
+          value: '104857600'
+          description: 'Порог алёрта: макс. объём несинхронизированных данных в папке (байт). По умолчанию 100 MB'
+        - macro: '{$SYNCTHING.PASSWORD}'
+          description: 'Пароль для Basic Auth (GUI пароль Syncthing)'
+        - macro: '{$SYNCTHING.URL}'
+          value: 'https://127.0.0.1:8384'
+          description: 'URL Syncthing GUI с протоколом и портом (например: https://172.17.0.1:8384)'
+        - macro: '{$SYNCTHING.USERNAME}'
+          description: 'Логин для Basic Auth (GUI пользователь Syncthing)'
+      valuemaps:
+        - uuid: f47ac10b58cc4372a5670e02b2c3d479
+          name: 'Syncthing folder state'
+          mappings:
+            - value: '0'
+              newvalue: Idle
+            - value: '1'
+              newvalue: Syncing
+            - value: '2'
+              newvalue: Scanning
+            - value: '3'
+              newvalue: Error
+            - value: '4'
+              newvalue: Unknown
+            - value: '99'
+              newvalue: Other
+        - uuid: f47ac10b58cc4372a5670e02b2c3d480
+          name: 'Syncthing remote state'
+          mappings:
+            - value: valid
+              newvalue: 'Valid (online)'
+            - value: unknown
+              newvalue: 'Unknown (offline)'
+            - value: paused
+              newvalue: Paused
+  triggers:
+    - uuid: 6ba7b8109dad4c1b80c77a4c1b9b0303
+      expression: 'last(/Template App Syncthing/syncthing.devices.connected)<{$SYNCTHING.DEVICES.MIN_CONNECTED} and last(/Template App Syncthing/syncthing.devices.disconnected)>0'
+      name: 'Syncthing: Too few devices connected'
+      priority: AVERAGE
